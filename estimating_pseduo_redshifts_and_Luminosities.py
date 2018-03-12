@@ -33,11 +33,13 @@ cm_per_Mpc	=	3.0857 * 1e24
 erg_per_keV	=	1.6022 * 1e-9
 
 
-A___Tsutsui		=	2.927		#	best-fit from Tsutsui-2013
-eta_Tsutsui		=	1.590		#	best-fit from Tsutsui-2013
-A___mybestfit	=	3.031		#	my best-fit
-eta_mybestfit	=	1.725		#	my best-fit
+A___Tsutsui		=	2.93		#	best-fit from Tsutsui-2013
+eta_Tsutsui		=	1.59		#	best-fit from Tsutsui-2013
+A___mybestfit	=	2.04		#	my best-fit
+eta_mybestfit	=	1.17		#	my best-fit
 
+#~ A	=	A___Tsutsui
+#~ eta	=	eta_Tsutsui
 A	=	A___mybestfit
 eta	=	eta_mybestfit
 
@@ -77,7 +79,7 @@ def choose( bigger, smaller ):
 
 
 
-k_table		=	ascii.read( './../tables/k_table.txt', format = 'fixed_width' )
+k_table		=	ascii.read( './../tables/k_correction.txt', format = 'fixed_width' )
 z_sim		=	k_table['z'].data
 dL_sim		=	k_table['dL'].data
 k_Fermi		=	k_table['k_Fermi'].data
@@ -185,7 +187,7 @@ def estimate_pseudo_redshift_and_Luminosity__Swift( name, flux, flux_error, Epea
 	
 	percentage_error	=	100 * ( pseudo_redshifts_error / pseudo_redshifts )
 	percentage_cutoff	=	100
-	print 'Percentage error, min and max	:	', percentage_error.min(), percentage_error.max()
+	print 'Percentage error, min and max	:	', np.min(percentage_error), np.max(percentage_error)
 	print 'Percentage error, mean		:	', np.median(percentage_error)
 	print 'Luminosity error, mean:			', 100 * np.median(Luminosity_error/Luminosity)
 	inds_huge_errors	=	np.where( percentage_error >= percentage_cutoff )[0]
@@ -213,7 +215,7 @@ def estimate_pseudo_redshift_and_Luminosity__BATSE( name, flux, flux_error, Epea
 		pseudo_redshifts[j]			=	pseudo_redshift
 		pseudo_redshifts_error[j]	=	pseudo_redshift_error
 	
-	print 'pseudo redshift , min and max	:	', np.min(pseudo_redshifts), np.max(pseudo_redshifts.max), '\n'
+	print 'pseudo redshift , min and max	:	', np.min(pseudo_redshifts), np.max(pseudo_redshifts), '\n'
 	
 	
 	Luminosity	=	flux.copy()
@@ -256,7 +258,7 @@ def estimate_pseudo_redshift_and_Luminosity__Fermi_exclusive( name, flux, flux_e
 		pseudo_redshifts[j]			=	pseudo_redshift
 		pseudo_redshifts_error[j]	=	pseudo_redshift_error
 	
-	print 'pseudo redshift , min and max	:	', pseudo_redshifts.min(), pseudo_redshifts.max(), '\n'
+	print 'pseudo redshift , min and max	:	', np.min(pseudo_redshifts), np.max(pseudo_redshifts), '\n'
 	
 	
 	Luminosity	=	flux.copy()
@@ -268,7 +270,7 @@ def estimate_pseudo_redshift_and_Luminosity__Fermi_exclusive( name, flux, flux_e
 	
 	percentage_error	=	100 * ( pseudo_redshifts_error / pseudo_redshifts )
 	percentage_cutoff	=	100
-	print 'Percentage error, min and max	:	', percentage_error.min(), percentage_error.max()
+	print 'Percentage error, min and max	:	', np.min(percentage_error), np.max(percentage_error)
 	print 'Percentage error, mean		:	', percentage_error.mean()
 	print 'Luminosity error, mean:			', 100 * (Luminosity_error/Luminosity).mean()
 	inds_huge_errors	=	np.where( percentage_error >= percentage_cutoff )[0]
@@ -291,7 +293,7 @@ def estimate_pseudo_redshift_and_Luminosity__Fermi_exclusive( name, flux, flux_e
 
 
 
-Fermi_GRBs_table			=	ascii.read( './../data/Fermi_GRBs--with_spectral_parameters.txt', format = 'fixed_width' )
+Fermi_GRBs_table			=	ascii.read( './../tables/Fermi_GRBs--with_spectral_parameters.txt', format = 'fixed_width' )
 Fermi_name					=	Fermi_GRBs_table['Fermi name'].data
 Fermi_T90					=	Fermi_GRBs_table['GBM T90'].data
 Fermi_T90_error				=	Fermi_GRBs_table['GBM T90_error'].data
@@ -304,17 +306,20 @@ Fermi_alpha_error			=	Fermi_GRBs_table['alpha_error'].data
 Fermi_beta					=	Fermi_GRBs_table['beta'].data
 Fermi_beta_error			=	Fermi_GRBs_table['beta_error'].data
 Fermi_num					=	Fermi_name.size
+inds_Fermi_short	=	np.where(Fermi_T90 < T90_cut)[0]	;	inds_Fermi_long	=	np.delete( np.arange(Fermi_num), inds_Fermi_short )
+print 'Total number of Fermi GRBs	:	', Fermi_num
+print '	...subset:	short	:	', inds_Fermi_short.size
+print '	...subset:	long	:	', inds_Fermi_long.size , '\n'
 
 
-
-Swift_all_GRBs_table		=	ascii.read( './../data/Swift_GRBs--all.txt', format = 'fixed_width' )
+Swift_all_GRBs_table		=	ascii.read( './../tables/Swift_GRBs--all.txt', format = 'fixed_width' )
 Swift_all_name				=	Swift_all_GRBs_table['Swift name'].data
 Swift_all_T90				=	Swift_all_GRBs_table['BAT T90'].data
 Swift_all_flux				=	Swift_all_GRBs_table['BAT Phoflux'].data
 Swift_all_flux_error		=	Swift_all_GRBs_table['BAT Phoflux_error'].data
 Swift_all_num				=	Swift_all_name.size
 
-Swift_wkr_GRBs_table		=	ascii.read( './../data/Swift_GRBs--wkr.txt', format = 'fixed_width' )
+Swift_wkr_GRBs_table		=	ascii.read( './../tables/Swift_GRBs--wkr.txt', format = 'fixed_width' )
 Swift_wkr_name				=	Swift_wkr_GRBs_table['Swift name'].data
 Swift_wkr_redhsift			=	Swift_wkr_GRBs_table['redshift'].data
 Swift_wkr_T90				=	Swift_wkr_GRBs_table['BAT T90'].data
@@ -325,7 +330,7 @@ Swift_wkr_num				=	Swift_wkr_name.size
 
 
 
-common_all_GRBs_table		=	ascii.read( './../data/common_GRBs--all.txt', format = 'fixed_width' )
+common_all_GRBs_table		=	ascii.read( './../tables/common_GRBs--all.txt', format = 'fixed_width' )
 common_all_ID				=	common_all_GRBs_table['common ID'].data
 common_all_Swift_name		=	common_all_GRBs_table['Swift name'].data
 common_all_Fermi_name		=	common_all_GRBs_table['Fermi name'].data
@@ -342,7 +347,7 @@ common_all_beta				=	common_all_GRBs_table['beta'].data
 common_all_beta_error		=	common_all_GRBs_table['beta_error'].data
 common_all_num				=	common_all_ID.size
 
-common_wkr_GRBs_table		=	ascii.read( './../data/common_GRBs--wkr.txt', format = 'fixed_width' )
+common_wkr_GRBs_table		=	ascii.read( './../tables/common_GRBs--wkr.txt', format = 'fixed_width' )
 common_wkr_ID				=	common_wkr_GRBs_table['common ID'].data
 common_wkr_Swift_name		=	common_wkr_GRBs_table['Swift name'].data
 common_wkr_Fermi_name		=	common_wkr_GRBs_table['Fermi name'].data
@@ -371,7 +376,7 @@ BATSE_T90_error				=	BATSE_GRBs_table['T90_error'].data
 BATSE_flux					=	BATSE_GRBs_table['flux'].data
 BATSE_flux_error			=	BATSE_GRBs_table['flux_error'].data
 BATSE_num					=	BATSE_name.size
-print 'Number of BATSE GRBs	:	' , BATSE_num
+print 'Number of BATSE GRBs		:	' , BATSE_num
 #~ inds						=	np.where( BATSE_flux > BATSE_sensitivity )[0]
 inds						=	np.where( BATSE_flux != 0 )[0]
 BATSE_name					=	BATSE_name[inds]
@@ -380,30 +385,72 @@ BATSE_T90_error				=	BATSE_T90_error[inds]
 BATSE_flux					=	BATSE_flux[inds]
 BATSE_flux_error			=	BATSE_flux_error[inds]
 BATSE_num					=	BATSE_name.size
-print 'Number of BATSE GRBs	:	' , BATSE_num
+print 'Number of BATSE GRBs		:	' , BATSE_num, '\n\n'
 
 
 
-Fermi_exclusive_GRBs_table			=	ascii.read( './../tables/Fermi_GRBs--exclusive.txt', format = 'fixed_width' )
-Fermi_exclusive_name				=	Fermi_exclusive_GRBs_table['name'].data	
-Fermi_exclusive_T90					=	Fermi_exclusive_GRBs_table['T90'].data
-Fermi_exclusive_T90_error			=	Fermi_exclusive_GRBs_table['T90_error'].data
-Fermi_exclusive_flux				=	Fermi_exclusive_GRBs_table['flux [erg.cm^{-2}.s^{-1}]'].data
-Fermi_exclusive_flux_error			=	Fermi_exclusive_GRBs_table['flux_error [erg.cm^{-2}.s^{-1}]'].data
-Fermi_exclusive_Epeak_in_MeV		=	Fermi_exclusive_GRBs_table['Epeak (siml) [MeV]'].data
-Fermi_exclusive_Epeak_in_MeV_error	=	Fermi_exclusive_GRBs_table['Epeak_error (siml) [MeV]'].data
-Fermi_exclusive_num					=	Fermi_exclusive_name.size
+Fermi_exclusive_short_GRBs_table			=	ascii.read( './../tables/Fermi_GRBs--without_spectral_parameters--short.txt', format = 'fixed_width' )
+Fermi_exclusive_short_name					=	Fermi_exclusive_short_GRBs_table['name'].data	
+Fermi_exclusive_short_T90					=	Fermi_exclusive_short_GRBs_table['T90'].data
+Fermi_exclusive_short_T90_error				=	Fermi_exclusive_short_GRBs_table['T90_error'].data
+Fermi_exclusive_short_flux					=	Fermi_exclusive_short_GRBs_table['flux [erg.cm^{-2}.s^{-1}]'].data
+Fermi_exclusive_short_flux_error			=	Fermi_exclusive_short_GRBs_table['flux_error [erg.cm^{-2}.s^{-1}]'].data
+Fermi_exclusive_short_Epeak_in_MeV			=	Fermi_exclusive_short_GRBs_table['Epeak (siml) [MeV]'].data
+Fermi_exclusive_short_Epeak_in_MeV_error	=	Fermi_exclusive_short_GRBs_table['Epeak_error (siml) [MeV]'].data
+Fermi_exclusive_short_num					=	Fermi_exclusive_short_name.size
 
-print '\n\n'
-print Fermi_exclusive_flux.min(), Fermi_exclusive_flux.max()
-print Fermi_flux.min(), Fermi_flux.max()
-print '\n\n'
+
+####################################################################################################################################################
+
 
 
 
 ####################################################################################################################################################
 
 
+##	Modelling the Ep distribution of Fermi GRBs for future use of BATSE and Swift GRBs.
+
+
+hist_short	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_Epeak[inds_Fermi_short]), 0.250, 0.5, 4 ) ; hx_short = hist_short[0] ; hy_short = hist_short[1]
+fits_short	=	mf.fit_a_gaussian( hx_short, hy_short )	;	f0_short = fits_short[0] ; f1_short = fits_short[1] ; f2_short = fits_short[2]
+hist_long	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_Epeak[inds_Fermi_long ]), 0.125, 0.5, 4 ) ; hx_long  = hist_long[0]  ; hy_long  = hist_long[1]
+fits_long	=	mf.fit_a_gaussian( hx_long, hy_long )	;	f0_long  = fits_long[0]  ; f1_long  = fits_long[1]  ; f2_long   = fits_long[2]
+
+print '\n\n'
+print 'Mean Epeak, short: ', 10**f0_short
+print 'Mean Epeak,  long: ', 10**f0_long
+print '\n\n'
+
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx_short, mf.gaussian(hx_short, f0_short, f1_short, f2_short), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx_short, hy_short, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution--short.png' )
+plt.clf()
+plt.close()
+
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx_long, mf.gaussian(hx_long, f0_long, f1_long, f2_long), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx_long, hy_long, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution--long.png' )
+plt.clf()
+plt.close()
+
+
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.step( hx_short, hy_short, where = 'mid', color = 'b', label = r'$ \rm{ short, \; data } $' )
+plt.step( hx_long , hy_long , where = 'mid', color = 'r', label = r'$ \rm{ long , \; data } $' )
+plt.plot( hx_short, mf.gaussian(hx_short, f0_short, f1_short, f2_short), 'k-' , label = r'$ \rm{ short, \; fit } $' )
+plt.plot( hx_long , mf.gaussian(hx_long , f0_long , f1_long , f2_long ), 'k-.', label = r'$ \rm{ long , \; fit } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution--both.png' )
+plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution--both.pdf' )
+plt.clf()
+plt.close()
+
+
+####################################################################################################################################################
 
 
 
@@ -580,68 +627,62 @@ Swift_T90			=	Swift_all_T90[inds_exclusively_Swift_GRBs_without_redshift]
 Swift_flux			=	Swift_all_flux[inds_exclusively_Swift_GRBs_without_redshift]
 Swift_flux_error	=	Swift_all_flux_error[inds_exclusively_Swift_GRBs_without_redshift]
 
-
-
-hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_Epeak), 0.125, 1, 4 )	;	hx	=	hist[0]	;	hy	=	hist[1]
-fits	=	mf.fit_a_gaussian( hx, hy )	;	f0	=	fits[0]	;	f1	=	fits[1]	;	f2	=	fits[2]
-
-Swift_Epeak_in_keV			=	np.random.normal( f0, f1, Swift_num )
-Swift_Epeak_in_keV			=	10**Swift_Epeak_in_keV			#	in keV
-Swift_Epeak_in_MeV			=	1e-3 * Swift_Epeak_in_keV		#	in MeV
-Swift_Epeak_in_MeV_error	=	np.zeros( Swift_Epeak_in_MeV.size )
-
-#~ plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
-#~ plt.plot( hx, mf.gaussian(hx, f0, f1, f2), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
-#~ plt.step( hx, hy, color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
-#~ plt.legend( numpoints = 1, loc = 'best' )
-#~ plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution.png' )
-#~ plt.clf()
-#~ plt.close()
-#~ 
-#~ hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Swift_Epeak_in_keV), 0.125, 1, 4 )	;	sx	=	hist[0]	;	sy	=	hist[1]
-#~ plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
-#~ plt.plot( hx, mf.gaussian(hx, f0, f1, f2), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
-#~ plt.step( hx, hy, color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
-#~ plt.step( sx, sy * (hy.max()/sy.max()), color = 'b', label = r'$ Swift \rm{ , \; simulated } $' )
-#~ plt.legend( numpoints = 1, loc = 'best' )
-#~ plt.savefig( './../plots/pseudo_calculations/Swift--Ep_distribution--simulated_1.png' )
-#~ plt.clf()
-#~ plt.close()
-#~ 
-#~ plt.title( r'$ Swift $', fontsize = size_font )
-#~ plt.hist( Swift_Epeak_in_keV, bins = np.logspace(1, 4, 20) )
-#~ plt.gca().set_xscale('log')
-#~ plt.xlabel( r'$ E_p \; \rm{ [keV] } $', fontsize = size_font )
-#~ plt.savefig( './../plots/pseudo_calculations/Swift--Ep_distribution--simulated_2.png' )
-#~ plt.clf()
-#~ plt.close()
-
-
-
-
-
-inds_long_in_Swift	=	np.where( Swift_T90 >= T90_cut )[0]
-inds_short_in_Swift	=	np.delete( np.arange(Swift_num), inds_long_in_Swift )
+inds_long_in_Swift	=	np.where( Swift_T90 >= T90_cut )[0]	;	inds_short_in_Swift	=	np.delete( np.arange(Swift_num), inds_long_in_Swift )
 
 Swift_long_name					=	Swift_name[inds_long_in_Swift]
 Swift_long_T90					=	Swift_T90[inds_long_in_Swift]
 Swift_long_flux					=	Swift_flux[inds_long_in_Swift]
 Swift_long_flux_error			=	Swift_flux_error[inds_long_in_Swift]
-Swift_long_Epeak_in_MeV			=	Swift_Epeak_in_MeV[inds_long_in_Swift]
-Swift_long_Epeak_in_MeV_error	=	Swift_Epeak_in_MeV_error[inds_long_in_Swift]
 Swift_long_num					=	Swift_long_name.size
 
 Swift_short_name				=	Swift_name[inds_short_in_Swift]
 Swift_short_T90					=	Swift_T90[inds_short_in_Swift]
 Swift_short_flux				=	Swift_flux[inds_short_in_Swift]
 Swift_short_flux_error			=	Swift_flux_error[inds_short_in_Swift]
-Swift_short_Epeak_in_MeV		=	Swift_Epeak_in_MeV[inds_short_in_Swift]
-Swift_short_Epeak_in_MeV_error	=	Swift_Epeak_in_MeV_error[inds_short_in_Swift]
 Swift_short_num					=	Swift_short_name.size
-
 
 print 'Out of which, # of long  GRBs	:	', Swift_long_num
 print '                   short GRBs	:	', Swift_short_num
+
+
+
+
+Swift_short_Epeak_in_keV			=	np.random.normal( f0_short, f1_short, Swift_short_num )
+Swift_short_Epeak_in_keV			=	10**Swift_short_Epeak_in_keV			#	in keV
+Swift_short_Epeak_in_MeV			=	1e-3 * Swift_short_Epeak_in_keV			#	in MeV
+Swift_short_Epeak_in_MeV_error		=	np.zeros( Swift_short_Epeak_in_MeV.size )
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Swift_short_Epeak_in_keV), 0.125, 1, 4 ) ; sx_short = hist[0] ; sy_short = hist[1]
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx_short, mf.gaussian(hx_short, f0_short, f1_short, f2_short), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx_short, hy_short, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.step( sx_short, sy_short * (hy_short.max()/sy_short.max()), where = 'mid', color = 'b', label = r'$ Swift \rm{ , \; simulated } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Swift--Ep_distribution--short.png' )
+plt.clf()
+plt.close()
+
+
+Swift_long_Epeak_in_keV				=	np.random.normal( f0_long , f1_long , Swift_long_num )
+Swift_long_Epeak_in_keV				=	10**Swift_long_Epeak_in_keV				#	in keV
+Swift_long_Epeak_in_MeV				=	1e-3 * Swift_long_Epeak_in_keV			#	in MeV
+Swift_long_Epeak_in_MeV_error		=	np.zeros( Swift_long_Epeak_in_MeV.size )
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Swift_long_Epeak_in_keV ), 0.125, 1, 4 ) ; sx_long  = hist[0]  ; sy_long  = hist[1]
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx_long, mf.gaussian(hx_long, f0_long, f1_long, f2_long), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx_long, hy_long, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.step( sx_long, sy_long * (hy_long.max()/sy_long.max()), where = 'mid', color = 'b', label = r'$ Swift \rm{ , \; simulated } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Swift--Ep_distribution--long.png' )
+plt.clf()
+plt.close()
+
+
+
+
+
+
 
 
 
@@ -762,53 +803,62 @@ known_short_Luminosity	=	common_wkr_Luminosity[inds_common_short] * L_norm
 ########	For the BATSE GRBs.
 
 
+inds_BATSE_short	=	np.where( BATSE_T90 < T90_cut )	;	inds_BATSE_long	=	np.delete( np.arange(BATSE_num), inds_BATSE_short )
+BATSE_short_name				=	BATSE_name[inds_BATSE_short]
+BATSE_short_T90					=	BATSE_T90[inds_BATSE_short]
+BATSE_short_T90_error			=	BATSE_T90_error[inds_BATSE_short]
+BATSE_short_flux				=	BATSE_flux[inds_BATSE_short]
+BATSE_short_flux_error			=	BATSE_flux_error[inds_BATSE_short]
+BATSE_short_num					=	BATSE_short_name.size
+BATSE_long_name					=	BATSE_name[inds_BATSE_long]
+BATSE_long_T90					=	BATSE_T90[inds_BATSE_long]
+BATSE_long_T90_error			=	BATSE_T90_error[inds_BATSE_long]
+BATSE_long_flux					=	BATSE_flux[inds_BATSE_long]
+BATSE_long_flux_error			=	BATSE_flux_error[inds_BATSE_long]
+BATSE_long_num					=	BATSE_long_name.size
 
-
-hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_Epeak), 0.125, 1, 4 )	;	hx	=	hist[0]	;	hy	=	hist[1]
-fits	=	mf.fit_a_gaussian( hx, hy )	;	f0	=	fits[0]	;	f1	=	fits[1]	;	f2	=	fits[2]
-
-BATSE_Epeak_in_keV			=	np.random.normal( f0, f1, BATSE_num )
-BATSE_Epeak_in_keV			=	10**BATSE_Epeak_in_keV			#	in keV
-BATSE_Epeak_in_MeV			=	1e-3 * BATSE_Epeak_in_keV		#	in MeV
-BATSE_Epeak_in_MeV_error	=	np.zeros( BATSE_Epeak_in_MeV.size )
-
-#~ hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(BATSE_Epeak_in_keV), 0.125, 1, 4 )	;	bx	=	hist[0]	;	by	=	hist[1]
-#~ plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
-#~ plt.plot( hx, mf.gaussian(hx, f0, f1, f2), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
-#~ plt.step( hx, hy, color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
-#~ plt.step( bx, by * (hy.max()/by.max()), color = 'y', label = r'$ BATSE \rm{ , \; simulated } $' )
-#~ plt.legend( numpoints = 1, loc = 'best' )
-#~ plt.savefig( './../plots/pseudo_calculations/BATSE--Ep_distribution--simulated_1.png' )
-#~ plt.clf()
-#~ plt.close()
-#~ 
-#~ plt.title( r'$ BATSE $', fontsize = size_font )
-#~ plt.hist( BATSE_Epeak_in_keV, bins = np.logspace(1, 4, 20) )
-#~ plt.gca().set_xscale('log')
-#~ plt.xlabel( r'$ E_p \; \rm{ [keV] } $', fontsize = size_font )
-#~ plt.savefig( './../plots/pseudo_calculations/BATSE--Ep_distribution--simulated_2.png' )
-#~ plt.clf()
-#~ plt.close()
-
-
-
-
-hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(BATSE_T90), 0.25, -3, 4 )	;	hx	=	hist[0]	;	hy	=	hist[1]
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(BATSE_T90), 0.25, -3, 4 ) ; hx = hist[0] ; hy = hist[1]
 plt.xlabel( r'$ \rm{ log( \, } $' + r'$ T_{90} $' + r'$ \rm{ \, [s] \, ) } $' , fontsize = size_font )
-plt.step( hx, hy, color = 'k' )
+plt.step( hx, hy, where = 'mid', color = 'k' )
 plt.savefig( './../plots/pseudo_calculations/BATSE--T90_distribution.png' )
 plt.clf()
 plt.close()
 
-inds							=	np.where( BATSE_T90 < T90_cut )
-BATSE_short_name				=	BATSE_name[inds]
-BATSE_short_T90					=	BATSE_T90[inds]
-BATSE_short_T90_error			=	BATSE_T90_error[inds]
-BATSE_short_flux				=	BATSE_flux[inds]
-BATSE_short_flux_error			=	BATSE_flux_error[inds]
-BATSE_short_Epeak_in_MeV		=	BATSE_Epeak_in_MeV[inds]
-BATSE_short_Epeak_in_MeV_error	=	BATSE_Epeak_in_MeV_error[inds]
-BATSE_short_num					=	BATSE_name.size
+
+
+
+BATSE_short_Epeak_in_keV			=	np.random.normal( f0_short, f1_short, BATSE_short_num )
+BATSE_short_Epeak_in_keV			=	10**BATSE_short_Epeak_in_keV			#	in keV
+BATSE_short_Epeak_in_MeV			=	1e-3 * BATSE_short_Epeak_in_keV			#	in MeV
+BATSE_short_Epeak_in_MeV_error		=	np.zeros( BATSE_short_Epeak_in_MeV.size )
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(BATSE_short_Epeak_in_keV), 0.250, 1, 4 ) ; bx_short = hist[0] ; by_short = hist[1]
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx_short, mf.gaussian(hx_short, f0_short, f1_short, f2_short), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx_short, hy_short, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.step( bx_short, by_short * (hy_short.max()/by_short.max()), where = 'mid', color = 'y', label = r'$ BATSE \rm{ , \; simulated } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/BATSE--Ep_distribution--short--simulated.png' )
+plt.clf()
+plt.close()
+
+BATSE_long_Epeak_in_keV				=	np.random.normal( f0_long, f1_long, BATSE_long_num )
+BATSE_long_Epeak_in_keV				=	10**BATSE_long_Epeak_in_keV			#	in keV
+BATSE_long_Epeak_in_MeV				=	1e-3 * BATSE_long_Epeak_in_keV			#	in MeV
+BATSE_long_Epeak_in_MeV_error		=	np.zeros( BATSE_long_Epeak_in_MeV.size )
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(BATSE_long_Epeak_in_keV), 0.125, 1, 4 ) ; bx_long = hist[0] ; by_long = hist[1]
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx_long, mf.gaussian(hx_long, f0_long, f1_long, f2_long), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx_long, hy_long, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.step( bx_long, by_long * (hy_long.max()/by_long.max()), where = 'mid', color = 'y', label = r'$ BATSE \rm{ , \; simulated } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/BATSE--Ep_distribution--long--simulated.png' )
+plt.clf()
+plt.close()
+
+
+
 
 
 
@@ -832,22 +882,11 @@ print '\n\n\n\n'
 ########	For the exclsuive Fermi GRBs (i.e. not common to Swift) without spectral parameter measurement.
 
 
-inds										=	np.where( Fermi_exclusive_T90 < T90_cut )
-Fermi_short_exclusive_name					=	Fermi_exclusive_name[inds]
-Fermi_short_exclusive_T90					=	Fermi_exclusive_T90[inds]
-Fermi_short_exclusive_T90_error				=	Fermi_exclusive_T90_error[inds]
-Fermi_short_exclusive_flux					=	Fermi_exclusive_flux[inds]
-Fermi_short_exclusive_flux_error			=	Fermi_exclusive_flux_error[inds]
-Fermi_short_exclusive_Epeak_in_MeV			=	Fermi_exclusive_Epeak_in_MeV[inds]
-Fermi_short_exclusive_Epeak_in_MeV_error	=	Fermi_exclusive_Epeak_in_MeV_error[inds]
-Fermi_short_exclusive_num					=	Fermi_short_exclusive_name.size
-
 print '\n\n\n\n'
 print '#### Fermi short exclusive GRBs ####', '\n'
-print 'Number of exclusive Fermi GRBs	:	', Fermi_exclusive_num
-print 'Out of which, number of short	:	', Fermi_short_exclusive_num, '\n'
-Fermi_short_exclusive_name, Fermi_short_exclusive_flux, Fermi_short_exclusive_flux_error, Fermi_short_exclusive_Epeak_in_MeV, Fermi_short_exclusive_Epeak_in_MeV_error, Fermi_short_exclusive_pseudo_redshift, Fermi_short_exclusive_pseudo_redshift_error, Fermi_short_exclusive_Luminosity, Fermi_short_exclusive_Luminosity_error	=	estimate_pseudo_redshift_and_Luminosity__Fermi_exclusive( Fermi_short_exclusive_name, Fermi_short_exclusive_flux, Fermi_short_exclusive_flux_error, Fermi_short_exclusive_Epeak_in_MeV, Fermi_short_exclusive_Epeak_in_MeV_error )
-print 'Number of GRBs selected		:	', Fermi_short_exclusive_flux.size
+print 'Number of exclusive Fermi short GRBs	:	', Fermi_exclusive_short_num
+Fermi_exclusive_short_name, Fermi_exclusive_short_flux, Fermi_exclusive_short_flux_error, Fermi_exclusive_short_Epeak_in_MeV, Fermi_exclusive_short_Epeak_in_MeV_error, Fermi_exclusive_short_pseudo_redshift, Fermi_exclusive_short_pseudo_redshift_error, Fermi_exclusive_short_Luminosity, Fermi_exclusive_short_Luminosity_error	=	estimate_pseudo_redshift_and_Luminosity__Fermi_exclusive( Fermi_exclusive_short_name, Fermi_exclusive_short_flux, Fermi_exclusive_short_flux_error, Fermi_exclusive_short_Epeak_in_MeV, Fermi_exclusive_short_Epeak_in_MeV_error )
+print 'Number of GRBs selected		:	', Fermi_exclusive_short_flux.size
 print '\n\n\n\n'
 
 
@@ -863,21 +902,20 @@ print '\n\n\n\n'
 
 
 print '\n\n\n\n'
-#	print (  np.where( Fermi_short_exclusive_flux_error			==	0 )[0] - np.where( Fermi_short_exclusive_pseudo_redshift_error	==	0 )[0]  ==  0  ).all()
 
 L_vs_z__known_short	=	Table( [ common_wkr_Fermi_name[inds_common_short], common_wkr_redshift[inds_common_short], common_wkr_Epeak[inds_common_short], common_wkr_Epeak_error[inds_common_short], known_short_Luminosity, common_wkr_Luminosity_error[inds_common_short] ], names = [ 'Fermi name', 'measured z', 'Epeak (meas) [keV]', 'Epeak_error (meas) [keV]', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
 L_vs_z__Fermi_short	=	Table( [ Fermi_short_name, Fermi_short_pseudo_redshift, Fermi_short_pseudo_redshift_error, Fermi_short_Epeak_in_MeV*1e3, Fermi_short_Epeak_in_MeV_error*1e3, Fermi_short_Luminosity, Fermi_short_Luminosity_error], names = [ 'name', 'pseudo z', 'pseudo z_error', 'Epeak (meas) [keV]', 'Epeak_error (meas) [keV]', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
 L_vs_z__Swift_short	=	Table( [ Swift_short_name, Swift_short_pseudo_redshift, Swift_short_pseudo_redshift_error, Swift_short_Epeak_in_MeV*1e3, Swift_short_Epeak_in_MeV_error*1e3, Swift_short_Luminosity, Swift_short_Luminosity_error], names = [ 'name', 'pseudo z', 'pseudo z_error', 'Epeak (siml) [keV]', 'Epeak_error (siml) [keV]', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
 L_vs_z__other_short	=	Table( [ other_short_name, other_short_redshift, other_short_Luminosity, other_short_Luminosity_error ], names = [ 'name', 'measured z', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
 L_vs_z__BATSE_short	=	Table( [ BATSE_short_name, BATSE_short_pseudo_redshift, BATSE_short_pseudo_redshift_error, BATSE_short_Epeak_in_MeV*1e3, BATSE_short_Epeak_in_MeV_error*1e3, BATSE_short_Luminosity, BATSE_short_Luminosity_error], names = [ 'name', 'pseudo z', 'pseudo z_error', 'Epeak (siml) [keV]', 'Epeak_error (siml) [keV]', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
-L_vs_z__FermE_short	=	Table( [ Fermi_short_exclusive_name, Fermi_short_exclusive_pseudo_redshift, Fermi_short_exclusive_pseudo_redshift_error, Fermi_short_exclusive_Epeak_in_MeV*1e3, Fermi_short_exclusive_Epeak_in_MeV_error*1e3, Fermi_short_exclusive_Luminosity, Fermi_short_exclusive_Luminosity_error], names = [ 'name', 'pseudo z', 'pseudo z_error', 'Epeak (siml) [keV]', 'Epeak_error (siml) [keV]', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
+L_vs_z__FermE_short	=	Table( [ Fermi_exclusive_short_name, Fermi_exclusive_short_pseudo_redshift, Fermi_exclusive_short_pseudo_redshift_error, Fermi_exclusive_short_Epeak_in_MeV*1e3, Fermi_exclusive_short_Epeak_in_MeV_error*1e3, Fermi_exclusive_short_Luminosity, Fermi_exclusive_short_Luminosity_error], names = [ 'name', 'pseudo z', 'pseudo z_error', 'Epeak (siml) [keV]', 'Epeak_error (siml) [keV]', 'Luminosity [erg/s]', 'Luminosity_error [erg/s]' ] )
 
-#~ ascii.write( L_vs_z__known_short, './../tables/L_vs_z__known_short.txt', format = 'fixed_width', overwrite = True )
-#~ ascii.write( L_vs_z__Fermi_short, './../tables/L_vs_z__Fermi_short.txt', format = 'fixed_width', overwrite = True )
-#~ ascii.write( L_vs_z__Swift_short, './../tables/L_vs_z__Swift_short.txt', format = 'fixed_width', overwrite = True )
-#~ ascii.write( L_vs_z__other_short, './../tables/L_vs_z__other_short.txt', format = 'fixed_width', overwrite = True )
-#~ ascii.write( L_vs_z__BATSE_short, './../tables/L_vs_z__BATSE_short.txt', format = 'fixed_width', overwrite = True )
-#~ ascii.write( L_vs_z__FermE_short, './../tables/L_vs_z__FermE_short.txt', format = 'fixed_width', overwrite = True )
+ascii.write( L_vs_z__known_short, './../tables/L_vs_z__known_short.txt', format = 'fixed_width', overwrite = True )
+ascii.write( L_vs_z__Fermi_short, './../tables/L_vs_z__Fermi_short.txt', format = 'fixed_width', overwrite = True )
+ascii.write( L_vs_z__Swift_short, './../tables/L_vs_z__Swift_short.txt', format = 'fixed_width', overwrite = True )
+ascii.write( L_vs_z__other_short, './../tables/L_vs_z__other_short.txt', format = 'fixed_width', overwrite = True )
+ascii.write( L_vs_z__BATSE_short, './../tables/L_vs_z__BATSE_short.txt', format = 'fixed_width', overwrite = True )
+ascii.write( L_vs_z__FermE_short, './../tables/L_vs_z__FermE_short.txt', format = 'fixed_width', overwrite = True )
 
 
 ####################################################################################################################################################

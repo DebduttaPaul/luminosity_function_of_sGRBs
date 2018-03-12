@@ -33,15 +33,6 @@ cm_per_Mpc	=	3.0857 * 1e24
 erg_per_keV	=	1.6022 * 1e-9
 
 
-A___Tsutsui		=	2.927		#	best-fit from Tsutsui-2013
-eta_Tsutsui		=	1.590		#	best-fit from Tsutsui-2013
-A___mybestfit	=	2.946		#	my best-fit
-eta_mybestfit	=	1.718		#	my best-fit
-
-A	=	A___mybestfit
-eta	=	eta_mybestfit
-
-
 padding		= 	8	# The padding of the axes labels.
 size_font	= 	16	# The fontsize in the images.
 marker_size	=	7	# The size of markers in scatter plots.
@@ -193,7 +184,7 @@ BATSE_fluence4				=	BATSE_GRBs_table['fluence_4'].data
 BATSE_fluence4_error		=	BATSE_GRBs_table['fluence_4_error'].data
 BATSE_num					=	BATSE_name.size
 print 'Number of BATSE GRBs	:	' , BATSE_num
-#~ inds						=	np.where( BATSE_flux > BATSE_sensitivity )[0]
+#	inds						=	np.where( BATSE_flux > BATSE_sensitivity )[0]
 inds						=	np.where( BATSE_flux != 0 )[0]
 BATSE_name					=	BATSE_name[inds]
 BATSE_Ttime					=	BATSE_Ttime[inds]
@@ -214,19 +205,19 @@ print 'Number of BATSE GRBs	:	' , BATSE_num
 
 
 
-Fermi_exclusive_GRBs_table		=	ascii.read( './../tables/Fermi_GRBs--without_spectral_parameters.txt', format = 'fixed_width' )
-Fermi_exclusive_name			=	Fermi_exclusive_GRBs_table['name'].data
-Fermi_exclusive_Ttime			=	Fermi_exclusive_GRBs_table['T-time'].data
-Fermi_exclusive_T90				=	Fermi_exclusive_GRBs_table['T90'].data
-Fermi_exclusive_T90_error		=	Fermi_exclusive_GRBs_table['T90_error'].data
-Fermi_exclusive_flux			=	Fermi_exclusive_GRBs_table['flux [erg.cm^{-2}.s^{-1}]'].data
-Fermi_exclusive_flux_error		=	Fermi_exclusive_GRBs_table['flux_error [erg.cm^{-2}.s^{-1}]'].data
-Fermi_exclusive_fluence			=	Fermi_exclusive_GRBs_table['fluence [erg.cm^{-2}]'].data
-Fermi_exclusive_fluence_error	=	Fermi_exclusive_GRBs_table['fluence_error [erg.cm^{-2}]'].data
-Fermi_exclusive_num				=	Fermi_exclusive_name.size
+Fermi_short_exclusive_GRBs_table	=	ascii.read( './../tables/Fermi_GRBs--without_spectral_parameters--short.txt', format = 'fixed_width' )
+Fermi_short_exclusive_name			=	Fermi_short_exclusive_GRBs_table['name'].data
+Fermi_short_exclusive_Ttime			=	Fermi_short_exclusive_GRBs_table['Ttime'].data
+Fermi_short_exclusive_T90			=	Fermi_short_exclusive_GRBs_table['T90'].data
+Fermi_short_exclusive_T90_error		=	Fermi_short_exclusive_GRBs_table['T90_error'].data
+Fermi_short_exclusive_flux			=	Fermi_short_exclusive_GRBs_table['flux [erg.cm^{-2}.s^{-1}]'].data
+Fermi_short_exclusive_flux_error	=	Fermi_short_exclusive_GRBs_table['flux_error [erg.cm^{-2}.s^{-1}]'].data
+Fermi_short_exclusive_fluence		=	Fermi_short_exclusive_GRBs_table['fluence [erg.cm^{-2}]'].data
+Fermi_short_exclusive_fluence_error	=	Fermi_short_exclusive_GRBs_table['fluence_error [erg.cm^{-2}]'].data
+Fermi_short_exclusive_num			=	Fermi_short_exclusive_name.size
 
 print '\n\n'
-print Fermi_exclusive_flux.min(), Fermi_exclusive_flux.max()
+print Fermi_short_exclusive_flux.min(), Fermi_short_exclusive_flux.max()
 print Fermi_flux.min(), Fermi_flux.max()
 print '\n\n'
 
@@ -572,21 +563,9 @@ print '\n\n\n\n'
 ########	For the exclsuive Fermi GRBs (i.e. not common to Swift) without spectral parameter measurement.
 
 
-inds										=	np.where( Fermi_exclusive_T90 < T90_cut )
-Fermi_short_exclusive_name					=	Fermi_exclusive_name[inds]
-Fermi_short_exclusive_Ttime					=	Fermi_exclusive_Ttime[inds]
-Fermi_short_exclusive_T90					=	Fermi_exclusive_T90[inds]
-Fermi_short_exclusive_T90_error				=	Fermi_exclusive_T90_error[inds]
-Fermi_short_exclusive_flux					=	Fermi_exclusive_flux[inds]
-Fermi_short_exclusive_flux_error			=	Fermi_exclusive_flux_error[inds]
-Fermi_short_exclusive_fluence				=	Fermi_exclusive_fluence[inds]
-Fermi_short_exclusive_fluence_error			=	Fermi_exclusive_fluence_error[inds]
-Fermi_short_exclusive_num					=	Fermi_short_exclusive_name.size
-
 print '\n\n\n\n'
 print '#### Fermi short exclusive GRBs ####', '\n'
-print 'Number of exclusive Fermi GRBs	:	', Fermi_exclusive_num
-print 'Number of short GRBs		:	', Fermi_short_exclusive_num, '\n'
+print 'Number of exclusive Fermi short GRBs	:	', Fermi_short_exclusive_num
 
 Fermi_short_name			=	np.concatenate( [ Fermi_short_name, Fermi_short_exclusive_name] )
 Fermi_short_Ttime			=	np.concatenate( [ Fermi_short_Ttime, Fermi_short_exclusive_Ttime] )

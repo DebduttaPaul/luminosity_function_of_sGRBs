@@ -21,10 +21,7 @@ marker_size	=	10	# The size of markers in scatter plots.
 
 P	=	np.pi		# Dear old pi!
 
-L_norm		=	1e52	#	in ergs.s^{-1}.
-
-cm_per_Mpc	=	3.0857 * 1e24
-erg_per_keV	=	1.6020 * 1e-9
+T90_cut		=	2		#	in sec.
 
 
 ####################################################################################################################################################
@@ -63,7 +60,7 @@ def convert( mother, mins, secs ):
 ####################################################################################################################################################
 
 
-Swift_all_GRBs_table	=	ascii.read( './../data/Swift_GRBs--all.txt', format = 'fixed_width' )
+Swift_all_GRBs_table	=	ascii.read( './../tables/Swift_GRBs--all.txt', format = 'fixed_width' )
 Swift_all_name			=	Swift_all_GRBs_table['Swift name'].data
 Swift_all_ID			=	Swift_all_GRBs_table['Swift ID'].data
 Swift_all_Ttimes		=	Swift_all_GRBs_table['BAT Trigger-time'].data
@@ -115,12 +112,14 @@ Fermi_all_num			=	Fermi_all_GRBs_name.size
 print 'With      flux-measurements	:	', Fermi_all_num
 
 
-Fermi_wsp_table			=	ascii.read( './../data/Fermi_GRBs--with_spectral_parameters.txt', format = 'fixed_width' )
+Fermi_wsp_table			=	ascii.read( './../tables/Fermi_GRBs--with_spectral_parameters.txt', format = 'fixed_width' )
 Fermi_wsp_name			=	Fermi_wsp_table['Fermi name'].data
+Fermi_wsp_T90			=	Fermi_wsp_table['GBM T90'].data
 Fermi_wsp_Epeak      	=	Fermi_wsp_table['Epeak'].data
 Fermi_wsp_num			=	Fermi_wsp_name.size
 print 'With    spectral parameters	:	', Fermi_wsp_num
-
+inds_Fermi_wsp_short	=	np.where(Fermi_wsp_T90 < T90_cut)[0]	;	inds_Fermi_wsp_long	=	np.delete( np.arange(Fermi_wsp_num), inds_Fermi_wsp_short )
+print '	...subset:	short	:	', inds_Fermi_wsp_short.size
 
 inds					=	choose( Fermi_all_GRBs_name, Fermi_wsp_name )
 inds					=	np.delete( np.arange(Fermi_all_num), inds )
@@ -137,43 +136,6 @@ Fermi_rest_fluence		=	Fermi_all_fluence[inds]
 Fermi_rest_fluence_error=	Fermi_all_fluence_error[inds]
 Fermi_rest_num			=	Fermi_rest_name.size
 print 'Without spectral parameters	:	', Fermi_rest_num
-
-
-
-####################################################################################################################################################
-
-
-
-
-####################################################################################################################################################
-
-
-hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_wsp_Epeak), 0.125, 1, 4 )	;	hx	=	hist[0]	;	hy	=	hist[1]
-fits	=	mf.fit_a_gaussian( hx, hy )	;	f0	=	fits[0]	;	f1	=	fits[1]	;	f2	=	fits[2]
-
-Fermi_exclusive_Epeak_in_keV		=	np.random.normal( f0, f1, Fermi_wsp_num )
-Fermi_exclusive_Epeak_in_keV		=	10**Fermi_exclusive_Epeak_in_keV		#	in keV
-Fermi_exclusive_Epeak_in_MeV		=	1e-3 * Fermi_exclusive_Epeak_in_keV		#	in MeV
-Fermi_exclusive_Epeak_in_MeV_error	=	np.zeros( Fermi_exclusive_Epeak_in_MeV.size )
-
-hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_exclusive_Epeak_in_keV), 0.125, 1, 4 )	;	fx	=	hist[0]	;	fy	=	hist[1]
-plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
-plt.plot( hx, mf.gaussian(hx, f0, f1, f2), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
-plt.step( hx, hy, color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
-plt.bar( fx, fy * (hy.max()/fy.max()), color = 'w', width = 0.1, edgecolor = 'k', hatch = '//', label = r'$ Fermi \rm{ , \; simulated } $' )
-plt.legend( numpoints = 1, loc = 'best' )
-plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution--simulated_1.png' )
-plt.clf()
-plt.close()
-
-plt.title( r'$ Fermi $', fontsize = size_font )
-plt.hist( Fermi_exclusive_Epeak_in_keV, bins = np.logspace(1, 4, 20) )
-plt.gca().set_xscale('log')
-plt.xlabel( r'$ E_p \; \rm{ [keV] } $', fontsize = size_font )
-plt.savefig( './../plots/pseudo_calculations/Fermi--Ep_distribution--simulated_2.png' )
-plt.clf()
-plt.close()
-
 
 
 ####################################################################################################################################################
@@ -229,30 +191,112 @@ indices_exclusive	=	indices_exclusive.astype(int)
 
 #	print Fermi_rest_name[indices_exclusive]
 
-print 'Those exclusive to Fermi	:	', indices_exclusive.size
+Fermi_excl_num	=	indices_exclusive.size
+print 'Those exclusive to Fermi	:	', Fermi_excl_num
 
 
 Fermi_exclusive_name				=	Fermi_rest_name[indices_exclusive]
 Fermi_exclusive_ID					=	Fermi_rest_ID[indices_exclusive]
-Fermi_exclusive_Ttime				=	Fermi_rest_Tt[indices_exclusive]
+Fermi_exclusive_Ttimes				=	Fermi_rest_Ttimes[indices_exclusive]
 Fermi_exclusive_T90					=	Fermi_rest_T90[indices_exclusive]
 Fermi_exclusive_T90_error			=	Fermi_rest_T90_error[indices_exclusive]
 Fermi_exclusive_flux				=	Fermi_rest_flux[indices_exclusive]
 Fermi_exclusive_flux_error			=	Fermi_rest_flux_error[indices_exclusive]
 Fermi_exclusive_fluence				=	Fermi_rest_fluence[indices_exclusive]
 Fermi_exclusive_fluence_error		=	Fermi_rest_fluence_error[indices_exclusive]
-Fermi_exclusive_Epeak_in_MeV		=	Fermi_exclusive_Epeak_in_MeV[indices_exclusive]
-Fermi_exclusive_Epeak_in_MeV_error	=	Fermi_exclusive_Epeak_in_MeV_error[indices_exclusive]
+Fermi_exclusive_num					=	Fermi_exclusive_name.size
 
 
-#~ Fermi_exclusive_table	=	Table( [ Fermi_exclusive_ID, Fermi_exclusive_name, Fermi_exclusive_T90, Fermi_exclusive_T90_error, Fermi_exclusive_flux, Fermi_exclusive_flux_error, Fermi_exclusive_Epeak_in_MeV, Fermi_exclusive_Epeak_in_MeV_error ], 
-									#~ names = [ 'ID', 'name', 'T90', 'T90_error', 'flux [erg.cm^{-2}.s^{-1}]', 'flux_error [erg.cm^{-2}.s^{-1}]', 'Epeak (siml) [MeV]', 'Epeak_error (siml) [MeV]' ] )
-#~ ascii.write( Fermi_exclusive_table, './../tables/Fermi_GRBs--exclusive.txt', format = 'fixed_width', overwrite = True )
+inds_Fermi_excl_short	=	np.where(Fermi_exclusive_T90 < T90_cut)[0]	;	inds_Fermi_excl_long	=	np.delete( np.arange(Fermi_excl_num), inds_Fermi_excl_short )
+Fermi_excl_short_name			=	Fermi_exclusive_name[inds_Fermi_excl_short]
+Fermi_excl_short_Ttime			=	Fermi_exclusive_Ttimes[inds_Fermi_excl_short]
+Fermi_excl_short_T90			=	Fermi_exclusive_T90[inds_Fermi_excl_short]
+Fermi_excl_short_T90_error		=	Fermi_exclusive_T90_error[inds_Fermi_excl_short]
+Fermi_excl_short_flux			=	Fermi_exclusive_flux[inds_Fermi_excl_short]
+Fermi_excl_short_flux_error		=	Fermi_exclusive_flux_error[inds_Fermi_excl_short]
+Fermi_excl_short_fluence		=	Fermi_exclusive_fluence[inds_Fermi_excl_short]
+Fermi_excl_short_fluence_error	=	Fermi_exclusive_fluence_error[inds_Fermi_excl_short]
+Fermi_excl_short_num			=	Fermi_excl_short_name.size
+print '	...subset:	short	:	', Fermi_excl_short_num
+Fermi_excl_long_name			=	Fermi_exclusive_name[inds_Fermi_excl_long]
+Fermi_excl_long_Ttime			=	Fermi_exclusive_Ttimes[inds_Fermi_excl_long]
+Fermi_excl_long_T90				=	Fermi_exclusive_T90[inds_Fermi_excl_long]
+Fermi_excl_long_T90_error		=	Fermi_exclusive_T90_error[inds_Fermi_excl_long]
+Fermi_excl_long_flux			=	Fermi_exclusive_flux[inds_Fermi_excl_long]
+Fermi_excl_long_flux_error		=	Fermi_exclusive_flux_error[inds_Fermi_excl_long]
+Fermi_excl_long_fluence			=	Fermi_exclusive_fluence[inds_Fermi_excl_long]
+Fermi_excl_long_fluence_error	=	Fermi_exclusive_fluence_error[inds_Fermi_excl_long]
+Fermi_excl_long_num				=	Fermi_excl_long_name.size
+print '	...subset:	long	:	', Fermi_excl_long_num
 
 
-Fermi_exclusive_table	=	Table( [Fermi_exclusive_name, Fermi_exclusive_Ttime, Fermi_exclusive_T90, Fermi_exclusive_T90_error, Fermi_exclusive_flux, Fermi_exclusive_flux_error, Fermi_exclusive_fluence, Fermi_exclusive_fluence_error ], 
-									names = [ 'name', 'T-time', 'T90', 'T90_error', 'flux [erg.cm^{-2}.s^{-1}]', 'flux_error [erg.cm^{-2}.s^{-1}]', 'fluence [erg.cm^{-2}]', 'fluence_error [erg.cm^{-2}]' ] )
-ascii.write( Fermi_exclusive_table, './../tables/Fermi_GRBs--without_spectral_parameters.txt', format = 'fixed_width', overwrite = True )
+####################################################################################################################################################
+
+
+
+
+
+####################################################################################################################################################
+
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_wsp_Epeak[inds_Fermi_wsp_short]), 0.50, 1, 4 )	;	hx	=	hist[0]	;	hy	=	hist[1]
+fits	=	mf.fit_a_gaussian( hx, hy )	;	f0	=	fits[0]	;	f1	=	fits[1]	;	f2	=	fits[2]
+print '\n\n'
+print 'short Epeak mean [keV]: ', round( 10**f0, 3 )
+
+Fermi_excl_short_Epeak_in_keV		=	np.random.normal( f0, f1, Fermi_excl_short_num )
+Fermi_excl_short_Epeak_in_keV		=	10**Fermi_excl_short_Epeak_in_keV			#	in keV
+Fermi_excl_short_Epeak_in_MeV		=	1e-3 * Fermi_excl_short_Epeak_in_keV		#	in MeV
+Fermi_excl_short_Epeak_in_MeV_error	=	np.zeros( Fermi_excl_short_Epeak_in_MeV.size )
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_excl_short_Epeak_in_keV), 0.50, 1, 4 )	;	fx	=	hist[0]	;	fy	=	hist[1]
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx, mf.gaussian(hx, f0, f1, f2), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx, hy, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.bar( fx, fy * (hy.max()/fy.max()), color = 'w', width = 0.1, edgecolor = 'k', hatch = '//', label = r'$ Fermi \rm{ , \; simulated } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Fermi_exclusive--Ep_distribution--short.png' )
+plt.clf()
+plt.close()
+
+
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_wsp_Epeak[inds_Fermi_wsp_long ]), 0.25, 1, 4 )	;	hx	=	hist[0]	;	hy	=	hist[1]
+fits	=	mf.fit_a_gaussian( hx, hy )	;	f0	=	fits[0]	;	f1	=	fits[1]	;	f2	=	fits[2]
+print ' long Epeak mean [keV]: ', round( 10**f0, 3 )
+
+Fermi_excl_long_Epeak_in_keV		=	np.random.normal( f0, f1, Fermi_excl_long_num )
+Fermi_excl_long_Epeak_in_keV		=	10**Fermi_excl_long_Epeak_in_keV			#	in keV
+Fermi_excl_long_Epeak_in_MeV		=	1e-3 * Fermi_excl_long_Epeak_in_keV		#	in MeV
+Fermi_excl_long_Epeak_in_MeV_error	=	np.zeros( Fermi_excl_long_Epeak_in_MeV.size )
+
+hist	=	mf.my_histogram_according_to_given_boundaries( np.log10(Fermi_excl_long_Epeak_in_keV), 0.25, 1, 4 )	;	fx	=	hist[0]	;	fy	=	hist[1]
+plt.xlabel( r'$ \rm{ log( \, } $' + r'$ E_p $' + r'$ \rm{ \, [keV] \, ) } $' , fontsize = size_font )
+plt.plot( hx, mf.gaussian(hx, f0, f1, f2), 'k-', label = r'$ Fermi \rm{ , \; fit } $' )
+plt.step( hx, hy, where = 'mid', color = 'r', label = r'$ Fermi \rm{ , \; data } $' )
+plt.bar( fx, fy * (hy.max()/fy.max()), color = 'w', width = 0.1, edgecolor = 'k', hatch = '//', label = r'$ Fermi \rm{ , \; simulated } $' )
+plt.legend( numpoints = 1, loc = 'best' )
+plt.savefig( './../plots/pseudo_calculations/Fermi_exclusive--Ep_distribution--long.png' )
+plt.clf()
+plt.close()
+
+
+####################################################################################################################################################
+
+
+
+
+####################################################################################################################################################
+
+
+
+Fermi_excl_short_table	=	Table( [ Fermi_excl_short_name, Fermi_excl_short_Ttime, Fermi_excl_short_T90, Fermi_excl_short_T90_error, Fermi_excl_short_flux, Fermi_excl_short_flux_error, Fermi_excl_short_fluence, Fermi_excl_short_fluence_error, Fermi_excl_short_Epeak_in_MeV, Fermi_excl_short_Epeak_in_MeV_error ], 
+									names = [ 'name', 'Ttime', 'T90', 'T90_error', 'flux [erg.cm^{-2}.s^{-1}]', 'flux_error [erg.cm^{-2}.s^{-1}]', 'fluence [erg.cm^{-2}]', 'fluence_error [erg.cm^{-2}]', 'Epeak (siml) [MeV]', 'Epeak_error (siml) [MeV]' ] )
+ascii.write( Fermi_excl_short_table, './../tables/Fermi_GRBs--without_spectral_parameters--short.txt', format = 'fixed_width', overwrite = True )
+
+Fermi_excl_long_table	=	Table( [ Fermi_excl_long_name , Fermi_excl_long_Ttime , Fermi_excl_long_T90 , Fermi_excl_long_T90_error , Fermi_excl_long_flux , Fermi_excl_long_flux_error , Fermi_excl_long_fluence , Fermi_excl_long_fluence_error , Fermi_excl_long_Epeak_in_MeV , Fermi_excl_long_Epeak_in_MeV_error  ], 
+									names = [ 'name', 'Ttime', 'T90', 'T90_error', 'flux [erg.cm^{-2}.s^{-1}]', 'flux_error [erg.cm^{-2}.s^{-1}]', 'fluence [erg.cm^{-2}]', 'fluence_error [erg.cm^{-2}]', 'Epeak (siml) [MeV]', 'Epeak_error (siml) [MeV]' ] )
+ascii.write( Fermi_excl_long_table, './../tables/Fermi_GRBs--without_spectral_parameters--long.txt', format = 'fixed_width', overwrite = True )
 
 
 

@@ -2,7 +2,6 @@ from __future__ import division
 from astropy.io import ascii
 from astropy.table import Table
 import debduttaS_functions as mf
-import specific_functions as sf
 import numpy as np
 import matplotlib.pyplot as plt
 plt.rc('axes', linewidth = 2)
@@ -64,9 +63,9 @@ Swift_all_fluence_error	=	Swift_all_data['BAT Fluence 90% Error (15-150 keV) [10
 Swift_all_num			=	Swift_all_GRB_name.size
 Swift_all_RA			=	Swift_all_RA * 24/360
 Swift_all_RA			=	np.round( Swift_all_RA, 3 )
-Swift_all_error_radius	=	np.round( Swift_all_error_radius , 3 )	# in arcmin.
-Swift_all_phoflux_error	=	np.round( Swift_all_phoflux_error, 11 )	# in erg.cm^{-2}.s^{-1}.
-Swift_all_fluence_error	=	np.round( Swift_all_fluence_error, 11 )	# in 10^{-7} erg.cm^{-2}.
+Swift_all_error_radius	=	np.round( Swift_all_error_radius , 1 )	# in arcmin.
+Swift_all_phoflux_error	=	np.round( Swift_all_phoflux_error, 1 )	# in erg.cm^{-2}.s^{-1}.
+Swift_all_fluence_error	=	np.round( Swift_all_fluence_error, 1 )	# in 10^{-7} erg.cm^{-2}.
 
 Swift_all_GRB_ID	=	np.zeros( Swift_all_num )
 Swift_all_Tt		=	np.zeros( Swift_all_num )
@@ -74,10 +73,8 @@ for j, Ttime in enumerate(Swift_all_Ttimes):
 	
 	name		=	Swift_all_GRB_name[j]
 	name		=	name[0:7]
-	if len(name) == 7:
-		ID = name[:-1]
-	else:
-		ID = name
+	if len(name) == 7:	ID = name[:-1]
+	else:	ID = name
 	Swift_all_GRB_ID[j] = ID
 		
 	hour			=	float( Ttime[0:2] )
@@ -196,14 +193,24 @@ Fermi_beta_error		=	np.delete( Fermi_beta_error          , inds_unphysical )
 Fermi_beta_pos_error	=	np.delete( Fermi_beta_pos_error      , inds_unphysical )
 Fermi_beta_neg_error	=	np.delete( Fermi_beta_neg_error      , inds_unphysical )
 Fermi_num				=	Fermi_GRB_name.size
+inds_Fermi_short	=	np.where(Fermi_T90 < 2)[0]	;	inds_Fermi_long	=	np.delete( np.arange(Fermi_num), inds_Fermi_short )
 print '...subset :		   physical spectral parameters : ', Fermi_num
-print 'out of which short according to Fermi criterion	 	: ', np.where(Fermi_T90 < 2)[0].size
+print 'out of which short according to Fermi criterion	 	: ', inds_Fermi_short.size
 
-#~ print '\n\n\n\n'
-#~ ratio_of_fluxes	=	( Fermi_fluence / Fermi_T90 ) / Fermi_flux
-#~ print np.median( ratio_of_fluxes ), mf.std_via_mad( ratio_of_fluxes )
-#~ print np.mean( ratio_of_fluxes ), np.std( ratio_of_fluxes )
-#~ print '\n\n\n\n'
+print '\n\n'
+print '...all...'
+print 'alpha:	', np.median(Fermi_alpha)
+print 'beta :	', np.median(Fermi_beta )
+print 'Epeak:	', np.median(Fermi_Epeak)
+print '...short...'
+print 'alpha:	', np.median(Fermi_alpha[inds_Fermi_short])
+print 'beta :	', np.median(Fermi_beta [inds_Fermi_short])
+print 'Epeak:	', np.median(Fermi_Epeak[inds_Fermi_short])
+print '...long...'
+print 'alpha:	', np.median(Fermi_alpha[inds_Fermi_long ])
+print 'beta :	', np.median(Fermi_beta [inds_Fermi_long ])
+print 'Epeak:	', np.median(Fermi_Epeak[inds_Fermi_long ])
+print '\n\n'
 
 
 Fermi_GRB_ID=	np.zeros( Fermi_num )

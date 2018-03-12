@@ -1,11 +1,11 @@
 from __future__ import division
 from astropy.io import ascii
 from astropy.table import Table
+from scipy import stats
 from scipy.stats import pearsonr as R
 from scipy.stats import spearmanr as S
 from scipy.stats import kendalltau as T
 from scipy.optimize import curve_fit
-from scipy.integrate import quad
 import debduttaS_functions as mf
 import specific_functions as sf
 import time
@@ -256,7 +256,7 @@ def choose( bigger, smaller ):
 	
 	return np.array(indices)
 
-other_table	=	ascii.read( './../tables/database_short--other.txt', format = 'fixed_width' )
+other_table	=	ascii.read( './../tables/database_short__other.txt', format = 'fixed_width' )
 other_name	=	other_table['name'].data
 other_z		=	other_table['measured z'].data
 
@@ -275,22 +275,20 @@ pseudo_redshift	=	np.concatenate( [Fermi_redshift, Swift_short_redshift, BATSE_s
 
 
 print 'total , Swift	:	',Swift_short_redshift__all.size, ' = ', other_short_redshift.size, '(other) + ', Swift_short_redshift.size, '(pseudo).'
-print 'known , Swift +	:	', known_redshift.size, '\n'
+print 'known , Swift +	:	', known_redshift.size, ' = ', combined_z.size, '(catalog) + ', other_short_redshift.size, '(other).', '\n'
 print 'total , Fermi 	:	', Fermi_redshift.size, ' = ', Fermi_short_redshift.size, '(with spectra) + ', FermE_short_redshift.size, '(without).'
 print '        BATSE 	:	', BATSE_short_redshift.size
 print 'pseudo, Swift 	:	', Swift_short_redshift.size
 print 'total , pseudo	:	', pseudo_redshift.size
-
-from scipy import stats
 print '\n\n\n\n\n\n\n'
 
 
 z_min = 0.0 ; z_max = 10.0 ; z_bin = 5e-1
 
-hist	=	mf.my_histogram_according_to_given_boundaries( known_redshift      , 1.0*z_bin, z_min, z_max )	;	kx	=	hist[0]	;	ky	=	hist[1]	;	norm	=	ky.sum()
-hist	=	mf.my_histogram_according_to_given_boundaries( BATSE_short_redshift, 1.0*z_bin, z_min, z_max )	;	bx	=	hist[0]	;	by	=	hist[1]	;	by	=	1.0 * norm * ( by/by.sum() )
-hist	=	mf.my_histogram_according_to_given_boundaries( Fermi_redshift      , 1.0*z_bin, z_min, z_max )	;	fx	=	hist[0]	;	fy	=	hist[1]	;	fy	=	1.0 * norm * ( fy/fy.sum() )
-hist	=	mf.my_histogram_according_to_given_boundaries( Swift_short_redshift, 2.0*z_bin, z_min, z_max )	;	sx	=	hist[0]	;	sy	=	hist[1]	;	sy	=	0.5 * norm * ( sy/sy.sum() )
+hist	=	mf.my_histogram_according_to_given_boundaries( known_redshift      , z_bin, z_min, z_max )	;	kx	=	hist[0]	;	ky	=	hist[1]
+hist	=	mf.my_histogram_according_to_given_boundaries( BATSE_short_redshift, z_bin, z_min, z_max )	;	bx	=	hist[0]	;	by	=	hist[1]
+hist	=	mf.my_histogram_according_to_given_boundaries( Fermi_redshift      , z_bin, z_min, z_max )	;	fx	=	hist[0]	;	fy	=	hist[1]
+hist	=	mf.my_histogram_according_to_given_boundaries( Swift_short_redshift, z_bin, z_min, z_max )	;	sx	=	hist[0]	;	sy	=	hist[1]
 
 ky	=	ky / ky.sum()	;	ky	=	np.cumsum(ky)
 by	=	by / by.sum()	;	by	=	np.cumsum(by)
@@ -305,10 +303,10 @@ print '\n\n'
 
 plt.xlabel( r'$ z $', fontsize = size_font )
 plt.ylabel( r'$ \rm{normalized} \;\; N(<z) $', fontsize = size_font )
-plt.step( kx, ky, color = 'k', linestyle = '-' , label = r'$ \rm{known} $' )
-plt.step( bx, by, color = 'y', linestyle = '--', label = r'$ BATSE $' )
-plt.step( fx, fy, color = 'r', linestyle = '-.', label = r'$ Fermi $' )
-plt.step( sx, sy, color = 'b', linestyle = ':' , label = r'$ Swift $' )
+plt.step( kx, ky, color = 'k', linewidth = 2, linestyle = '-' , label = r'$ \rm{known} $' )
+plt.step( bx, by, color = 'y', linewidth = 2, linestyle = '--', label = r'$ BATSE $' )
+plt.step( fx, fy, color = 'r', linewidth = 2, linestyle = '-.', label = r'$ Fermi $' )
+plt.step( sx, sy, color = 'b', linewidth = 2, linestyle = ':' , label = r'$ Swift $' )
 plt.legend( numpoints = 1, loc = 'best' )
 plt.savefig( './../plots/pseudo_calculations/redshift_distributions--cumulative.png' )
 plt.savefig( './../plots/pseudo_calculations/redshift_distributions--cumulative.pdf' )
@@ -316,17 +314,18 @@ plt.clf()
 plt.close()
 
 
-z_min = 0.0 ; z_max = 1.2 ; z_bin = 1e-1
+z_min = 0.0 ; z_max = 1.0 ; z_bin = 1e-1
 print 'Number of known below z_max:	', np.where( known_redshift < z_max )[0].size
-print 'Number of known below z_max:	', np.where( Fermi_redshift < z_max )[0].size
-print 'Number of known below z_max:	', np.where( BATSE_short_redshift < z_max )[0].size
-print 'Number of known below z_max:	', np.where( Swift_short_redshift < z_max )[0].size
+print 'Number of Fermi below z_max:	', np.where( Fermi_redshift < z_max )[0].size
+print 'Number of BATSE below z_max:	', np.where( BATSE_short_redshift < z_max )[0].size
+print 'Number of Swift below z_max:	', np.where( Swift_short_redshift < z_max )[0].size
 print '\n\n'
 
-hist	=	mf.my_histogram_according_to_given_boundaries( known_redshift      , 1.0*z_bin, z_min, z_max )	;	kx	=	hist[0]	;	ky	=	hist[1]
-hist	=	mf.my_histogram_according_to_given_boundaries( BATSE_short_redshift, 1.0*z_bin, z_min, z_max )	;	bx	=	hist[0]	;	by	=	hist[1]
-hist	=	mf.my_histogram_according_to_given_boundaries( Fermi_redshift      , 1.0*z_bin, z_min, z_max )	;	fx	=	hist[0]	;	fy	=	hist[1]
-hist	=	mf.my_histogram_according_to_given_boundaries( Swift_short_redshift, 2.0*z_bin, z_min, z_max )	;	sx	=	hist[0]	;	sy	=	hist[1]
+hist	=	mf.my_histogram_according_to_given_boundaries( known_redshift      , z_bin, z_min, z_max )	;	kx	=	hist[0]	;	ky	=	hist[1]	;	norm	=	ky.sum()
+hist	=	mf.my_histogram_according_to_given_boundaries( BATSE_short_redshift, z_bin, z_min, z_max )	;	bx	=	hist[0]	;	by	=	hist[1]	;	by	=	norm * ( by/by.sum() )
+hist	=	mf.my_histogram_according_to_given_boundaries( Fermi_redshift      , z_bin, z_min, z_max )	;	fx	=	hist[0]	;	fy	=	hist[1]	;	fy	=	norm * ( fy/fy.sum() )
+hist	=	mf.my_histogram_according_to_given_boundaries( Swift_short_redshift, z_bin, z_min, z_max )	;	sx	=	hist[0]	;	sy	=	hist[1]	;	sy	=	norm * ( sy/sy.sum() )
+
 
 ky	=	ky / ky.sum()	;	ky	=	np.cumsum(ky)
 by	=	by / by.sum()	;	by	=	np.cumsum(by)
@@ -337,12 +336,14 @@ print stats.ks_2samp(ky, by)
 print stats.ks_2samp(ky, fy)
 print stats.ks_2samp(ky, sy)
 
+
+plt.xlim( 0, 1.02 )
 plt.xlabel( r'$ z $', fontsize = size_font )
 plt.ylabel( r'$ \rm{normalized} \;\; N(<z) $', fontsize = size_font )
-plt.step( kx, ky, color = 'k', linestyle = '-' , label = r'$ \rm{known} $' )
-plt.step( bx, by, color = 'y', linestyle = '--', label = r'$ BATSE $' )
-plt.step( fx, fy, color = 'r', linestyle = '-.', label = r'$ Fermi $' )
-plt.step( sx, sy, color = 'b', linestyle = ':' , label = r'$ Swift $' )
+plt.step( kx, ky, color = 'k', linewidth = 2, linestyle = '-' , label = r'$ \rm{known} $' )
+plt.step( bx, by, color = 'y', linewidth = 2, linestyle = '--', label = r'$ BATSE $' )
+plt.step( fx, fy, color = 'r', linewidth = 2, linestyle = '-.', label = r'$ Fermi $' )
+plt.step( sx, sy, color = 'b', linewidth = 2, linestyle = ':' , label = r'$ Swift $' )
 #~ plt.legend( numpoints = 1, loc = 'best' )
 plt.savefig( './../plots/pseudo_calculations/redshift_distributions--cumulative--truncated.png' )
 plt.savefig( './../plots/pseudo_calculations/redshift_distributions--cumulative--truncated.pdf' )

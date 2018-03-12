@@ -26,9 +26,9 @@ z_min		=	1e-5
 z_max		=	1e2
 z_num		=	1e4
 
-alpha_fix	=	-0.566
-beta_fix	=	-2.823
-Ec_fix		=	181.338	#	in keV.
+alpha_fix	=	-0.200
+beta_fix	=	-3.515
+Ec_fix		=	382.819	#	in keV.
 
 
 ####################################################################################################################################################
@@ -67,7 +67,7 @@ def dL(z):
 
 def dVc_by_onepluszee(z):
 	
-	temp	=	(C/H_0)
+	temp	=	(4*P) * (C/H_0)
 	temp	=	temp * chi(z)**2
 	temp	=	temp / (1+z)
 	temp	=	temp / np.sqrt(  CC + (1-CC)*( (1+z)**3 )  )
@@ -337,3 +337,10 @@ def my_histogram_with_errorbars( array, array_poserr, array_negerr, x_bin, x_min
 		
 		
 	return x_mid, y, y_poserr, y_negerr
+
+
+
+
+
+def straight_line( x, m, c ):
+	return m*x + c

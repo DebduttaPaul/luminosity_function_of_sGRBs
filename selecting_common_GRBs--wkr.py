@@ -66,9 +66,9 @@ Swift_wkr_fluence_error		=	Swift_wkr_data['BAT Fluence 90% Error (15-150 keV) [1
 Swift_wkr_num				=	Swift_wkr_GRB_name.size
 Swift_wkr_RA				=	Swift_wkr_RA * 24/360
 Swift_wkr_RA				=	np.round( Swift_wkr_RA, 3 )
-Swift_wkr_error_radius		=	np.round( Swift_wkr_error_radius , 3 )	# in arcmin.
-Swift_wkr_phoflux_error		=	np.round( Swift_wkr_phoflux_error, 11 )	# in ph.cm^{-2}.s^{-1}.
-Swift_wkr_fluence_error		=	np.round( Swift_wkr_fluence_error, 11 )	# in 10^{-7} erg.cm^{-2}.
+Swift_wkr_error_radius		=	np.round( Swift_wkr_error_radius , 1 )	# in arcmin.
+Swift_wkr_phoflux_error		=	np.round( Swift_wkr_phoflux_error, 1 )	# in ph.cm^{-2}.s^{-1}.
+Swift_wkr_fluence_error		=	np.round( Swift_wkr_fluence_error, 1 )	# in 10^{-7} erg.cm^{-2}.
 
 Swift_wkr_GRB_ID	=	np.zeros( Swift_wkr_num )
 Swift_wkr_Tt		=	np.zeros( Swift_wkr_num )
@@ -76,10 +76,8 @@ for j, Ttime in enumerate(Swift_wkr_Ttimes):
 	
 	name		=	Swift_wkr_GRB_name[j]
 	name		=	name[0:7]
-	if len(name) == 7:
-		ID = name[:-1]
-	else:
-		ID = name
+	if len(name) == 7:	ID = name[:-1]
+	else:	ID = name
 	Swift_wkr_GRB_ID[j] = ID
 		
 	hour			=	float( Ttime[0:2] )
