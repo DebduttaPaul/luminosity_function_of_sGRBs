@@ -1,3 +1,0 @@
-|   Fermi name | measured z | Epeak (meas) [keV] | Epeak_error (meas) [keV] | Luminosity [erg/s] | Luminosity_error [erg/s] |
-| GRB131004904 |      0.717 |           143.9829 |                 89.52818 |  2.37292144852e+51 |           0.274255872147 |
-| GRB080905499 |      0.121 |           676.7375 |                 274.7557 |  1.01642765211e+50 |          0.0104070357561 |
